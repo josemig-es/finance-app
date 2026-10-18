@@ -53,47 +53,23 @@ BBVA bank ──► Enable Banking API ──► Python + SQLite (our "engine") 
 ### Iteration #3 — Timeline layout (2026-10-18)
 - Reorganized this file as a timeline: past iterations → current iteration → pending steps.
 
+### Iteration #4 — Project skeleton (2026-10-18)
+- Created the folder structure: `app/` (engine code), `scripts/`, `data/`, `secrets/`, plus `dashboard.py`.
+- The Python files are **placeholders** for now: each one says which step will fill it.
+- `requirements.txt` lists the libraries we need: SQLModel (database), Streamlit + Plotly + pandas (dashboard), python-dotenv, requests and PyJWT (bank connection).
+- `.env.example` is a template for your private settings, with no real values.
+- `.gitignore` now also ignores `.venv/`, and **everything inside `data/` and `secrets/`**. The empty folders stay in Git thanks to a tiny `.gitkeep` file.
+- **You:** set up your Python environment (see "🛠️ How to run the project" below).
+
 ---
 
 ## 🔨 Current iteration
 
-### Iteration #4 — Project skeleton ⏳ *waiting for your OK to start*
+### Iteration #5 — Database model ⏳ *waiting for your OK to start*
 
-**Goal:** Prepare a clean, organized folder so everything has its place.
-
-**What Claude will do:**
-- Create this folder structure:
-  ```
-  finance-app/
-  ├── app/
-  │   ├── models.py      ← database tables
-  │   ├── db.py          ← connection to the SQLite file
-  │   ├── categorize.py  ← auto-categorization rules
-  │   └── bank/          ← Enable Banking code
-  ├── scripts/
-  │   └── seed_fake_data.py  ← creates fake transactions
-  ├── dashboard.py       ← the Streamlit app
-  ├── data/              ← where the .db file lives (ignored by Git)
-  ├── secrets/           ← where your .pem key lives (ignored by Git)
-  ├── requirements.txt   ← list of Python libraries we need
-  └── .env.example       ← template for your private settings (no real values)
-  ```
-- Add `data/`, `secrets/` and `.venv/` to `.gitignore`, so private files can **never** be uploaded to GitHub by accident.
-
-**Why:** a clear structure makes it easy to find things later. Separating "secrets" and "data" from code is what keeps your repo safe to be public.
-
-**What you will do:**
-- Create a **virtual environment** (an isolated box for this project's Python libraries) and install them. Claude will give you the exact commands.
-- Note: your computer has Python 3.10. That works, but we may suggest upgrading to 3.12 later.
-
----
-
-## 📋 Pending steps
-
-### Database model
 **Goal:** Decide what information we save and how.
 
-**What Claude will do:** create three tables:
+**What Claude will do:** create three tables in `app/models.py`, and the connection code in `app/db.py`:
 
 | Table | What it stores | Example |
 |---|---|---|
@@ -106,6 +82,10 @@ The most important detail: every transaction has a **unique ID from the bank**. 
 **Why:** getting the tables right early saves a lot of pain later. Everything else (charts, budgets) reads from here.
 
 **What you will do:** review the table list. Do you want extra info? (e.g. notes, tags, "is this a fixed expense?")
+
+---
+
+## 📋 Pending steps
 
 ### Fake data
 **Goal:** Have realistic data to play with, without using your real bank.
@@ -157,7 +137,30 @@ The most important detail: every transaction has a **unique ID from the bank**. 
 
 ---
 
+## 🛠️ How to run the project
+
+Open **PowerShell** in the `finance-app` folder and run these once:
+
+```powershell
+py -m venv .venv                 # 1. create the virtual environment (the "isolated box")
+.venv\Scripts\Activate.ps1       # 2. turn it on — you'll see (.venv) at the start of the line
+pip install -r requirements.txt  # 3. install the libraries
+copy .env.example .env           # 4. create your private settings file
+streamlit run dashboard.py       # 5. open the app in your browser
+```
+
+Next times you only need steps 2 and 5.
+
+> If step 2 gives a "running scripts is disabled" error, run this once:
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+>
+> If `py` is not found, install Python 3.12 from python.org (tick "Add Python to PATH").
+
+---
+
 ## ✅ Your to-do list
 
-- [ ] Confirm Iteration #4 (Project skeleton)
-- [ ] (Optional, anytime) Start the Enable Banking registration — see "Real bank connection"
+- [ ] Push the last commit to GitHub (`git push`) and commit Iteration #4
+- [ ] Set up your Python environment and check the app opens — see "🛠️ How to run the project"
+- [ ] Confirm Iteration #5 (Database model)
+- [ ] 🔨 In progress: Enable Banking registration — see "Real bank connection"
