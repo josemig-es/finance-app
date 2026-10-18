@@ -2,6 +2,15 @@
 
 This file is our shared notebook. It explains **what we are building, what we've done, what we're doing now, and what comes next**.
 
+> ### 🚀 Quick reminder: open the app
+> In **PowerShell**, inside the `finance-app` folder:
+> ```powershell
+> .venv\Scripts\Activate.ps1      # turn on the virtual environment — you'll see (.venv)
+> streamlit run dashboard.py      # opens the app at http://localhost:8501
+> ```
+> To stop the app: press **Ctrl + C** in the terminal.
+> Explore the bank sandbox again: `python scripts\explore_sandbox.py` (BBVA test login: `user1` / `1234` / OTP `012345`).
+
 ## How we work together
 
 The file reads like a timeline, from top (past) to bottom (future):
@@ -61,33 +70,66 @@ BBVA bank ──► Enable Banking API ──► Python + SQLite (our "engine") 
 - `.gitignore` now also ignores `.venv/`, and **everything inside `data/` and `secrets/`**. The empty folders stay in Git thanks to a tiny `.gitkeep` file.
 - **You:** set up your Python environment (see "🛠️ How to run the project" below).
 
+### Iteration #5 — Explore the Enable Banking sandbox (2026-10-18)
+- Registered the sandbox app (you), created `.env` and `scripts/explore_sandbox.py` (Claude).
+- Connected to the **BBVA test bank** (user `user1` / `1234` / OTP `012345`) and downloaded 7 test accounts, 239 transactions (Jun–Sep 2026) into `data/sandbox_sample.json` (stays on your computer, ignored by Git).
+- **Lesson learned:** test banks use fake public credentials — never your real ones. Claude will always give you all needed test data *before* you run something.
+
+**What BBVA gives us** (useful fields only):
+
+| For each… | Field | Example | Notes |
+|---|---|---|---|
+| Account | IBAN | ES84 0182 … | |
+| Account | Product / description | "CUENTA ORDINARIA BBVA", "CUENTA PARA AHORROS" | |
+| Account | Balance | 7,251.29 € | |
+| Transaction | `entry_reference` | 2100000006…354159 | **Unique ID** → our duplicate protection |
+| Transaction | Booking date / value date | 2026-06-08 / 2026-06-04 | |
+| Transaction | Amount + currency | 313.34 EUR | Always positive… |
+| Transaction | Direction | `CRDT` (money in) / `DBIT` (money out) | …so this tells us the sign |
+| Transaction | Concept | "ALQUILER", "COMPRA", "RECIBO" | Main input for auto-categories |
+| Transaction | Who paid / who got paid | "Miguel", "David" | |
+| Transaction | Status | `BOOK` (done) / `PDNG` (pending) | |
+
+**Things to keep in mind:**
+- Sandbox data is fake and a bit odd: *all* 239 transactions are money **in**, and concepts are generic words. Real BBVA data will have money out and real merchant names (e.g. "MERCADONA").
+- Fields like `transaction_id`, merchant category or balance-after-transaction came **empty**. Your real bank may fill some of them.
+
 ---
 
 ## 🔨 Current iteration
 
-### Iteration #5 — Database model ⏳ *waiting for your OK to start*
+### Iteration #6 — Database model ⏳ *waiting for your OK*
 
-**Goal:** Decide what information we save and how.
+**Goal:** Save accounts and transactions in our SQLite file, using what we learned in Iteration #5.
 
-**What Claude will do:** create three tables in `app/models.py`, and the connection code in `app/db.py`:
+**Claude's proposal:**
 
-| Table | What it stores | Example |
-|---|---|---|
-| `Account` | Your bank accounts | "BBVA Cuenta Online" |
-| `Category` | Spending groups | "Groceries", "Rent", "Salary" |
-| `Transaction` | Each money movement | 2026-10-12, Mercadona, -45.30 €, Groceries |
+**`Account` table** — one row per bank account
+- IBAN, product name, description, currency
+- Current balance and when we last updated it
 
-The most important detail: every transaction has a **unique ID from the bank**. The database will refuse to save the same ID twice. This is how we **avoid duplicates** when we sync again and again.
+**`Transaction` table** — one row per money movement
+- `entry_reference` — the bank's unique ID. **The database refuses duplicates**, so syncing many times is safe.
+- Account it belongs to
+- Booking date and value date
+- **Signed amount**: positive = money in, negative = money out (we calculate it from `CRDT`/`DBIT`). This makes totals easy: just add everything up.
+- Concept (e.g. "ALQUILER") and counterparty (who paid / who got paid)
+- Status (done / pending)
+- **Category** — added by us (filled in the Auto-categorization step)
+- **Note** — your own free text, optional
+- **Raw data** — the original bank record, saved untouched, so if later you want a field we skipped today, we still have it
 
-**Why:** getting the tables right early saves a lot of pain later. Everything else (charts, budgets) reads from here.
+**`Category` table** — the list of categories (Groceries, Rent, Salary…)
 
-**What you will do:** review the table list. Do you want extra info? (e.g. notes, tags, "is this a fixed expense?")
+**What Claude will do:** write `app/models.py` and `app/db.py`, plus a small script that loads `data/sandbox_sample.json` into the database, so we can check that everything fits.
+
+**What you will do:** say OK, or tell Claude what to add/remove.
 
 ---
 
 ## 📋 Pending steps
 
-### Fake data
+### Fake data *(maybe not needed — the sandbox may give us enough test data)*
 **Goal:** Have realistic data to play with, without using your real bank.
 
 **What Claude will do:** a small script that fills the database with ~6 months of invented transactions (salary, rent, supermarket, Netflix, restaurants…).
@@ -137,6 +179,15 @@ The most important detail: every transaction has a **unique ID from the bank**. 
 
 ---
 
+## 🎨 Design preferences
+
+- **Minimalist.** Few elements, lots of space.
+- **Colors:** greys and matte tones. A *minimalist cyberpunk* feel (dark background, one subtle accent color).
+- **Font:** similar to the one in the Claude.ai interface. That exact font isn't free, so we'll pick a free look-alike.
+- To be polished later; for now we just keep it in mind.
+
+---
+
 ## 🛠️ How to run the project
 
 Open **PowerShell** in the `finance-app` folder and run these once:
@@ -160,7 +211,8 @@ Next times you only need steps 2 and 5.
 
 ## ✅ Your to-do list
 
-- [ ] Push to GitHub: `git push` (Iterations #1–#4 are committed locally)
-- [ ] Set up your Python environment and check the app opens — see "🛠️ How to run the project"
-- [ ] Confirm Iteration #5 (Database model)
-- [ ] 🔨 In progress: Enable Banking registration — see "Real bank connection"
+- [x] Push Iterations #1–#4 to GitHub
+- [x] Set up your Python environment and check the app opens
+- [x] Register the Enable Banking sandbox app and save the `.pem` in `secrets/`
+- [x] Run `scripts\explore_sandbox.py` and get the sandbox data
+- [ ] Review and confirm Iteration #6 (Database model)
