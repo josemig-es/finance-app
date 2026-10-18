@@ -1,176 +1,147 @@
 # 🧠 Project Memory
 
-This file is our shared notebook. It explains **what we are building, what we've done, what we're doing now, and what comes next**.
+This is the shared notebook of the project. It records **what has been done, what is happening now, and what comes next**, and who does each thing: **Claude** (the AI assistant) or **José** (the user).
 
 > ### 🚀 Quick reminder: open the app
 > In **PowerShell**, inside the `finance-app` folder:
 > ```powershell
-> .venv\Scripts\Activate.ps1      # turn on the virtual environment — you'll see (.venv)
+> .venv\Scripts\Activate.ps1      # turns on the virtual environment — "(.venv)" appears
 > streamlit run dashboard.py      # opens the app at http://localhost:8501
 > ```
-> To stop the app: press **Ctrl + C** in the terminal.
-> Explore the bank sandbox again: `python scripts\explore_sandbox.py` (BBVA test login: `user1` / `1234` / OTP `012345`).
+> To stop the app: **Ctrl + C** in the terminal.
+>
+> Other useful commands:
+> - `python scripts\explore_sandbox.py` — downloads test data from the BBVA test bank (login: `user1` / `1234` / OTP `012345`)
+> - `python scripts\load_sandbox.py` — loads that test data into the database
 
-## How we work together
+---
+
+## How Claude and José work together
 
 The file reads like a timeline, from top (past) to bottom (future):
 
 ```
 ✅ Past iterations    →   🔨 Current iteration   →   📋 Pending steps
-   (done, summarized)      (what we're on now)        (waiting for your OK)
+   (done, summarized)      (what's happening now)     (ideas not confirmed yet)
 ```
 
-1. **Claude** writes the next steps in **📋 Pending steps**, in plain English.
-2. **You** read them and say "OK" (or ask for changes).
-3. The confirmed step moves up to **🔨 Current iteration** and Claude does the work.
-4. When it's finished, it moves up to **✅ Past iterations** as a short summary: what we did and what changed.
+1. Claude writes the next iteration in plain English: what Claude will do and what José will do.
+2. José reads it and says "OK" (or asks for changes).
+3. Claude does the work, commits it, and moves the iteration to **✅ Past iterations** with a short summary.
+4. José pushes the commit to GitHub (`git push`).
 
-**Words we use**
-- **Step** = a part of the plan that is still pending (e.g. "Basic dashboard").
-- **Iteration** = one round of work, with a number (#1, #2, #3…). One step can take several iterations (build it, then adjust it…). So we can always say *"in Iteration 5 we changed X"*.
+**Words used here**
+- **Step** = a part of the plan that is still pending.
+- **Iteration** = one round of work, with a number (#1, #2, #3…), so anyone can say *"in Iteration 5 we changed X"*.
 
 ---
 
 ## 🗺️ The big picture
 
-The app has three pieces that pass data along, like a chain:
+The app is a chain of pieces that pass data along:
 
 ```
-BBVA bank ──► Enable Banking API ──► Python + SQLite (our "engine") ──► Streamlit dashboard
+BBVA bank ──► Enable Banking API ──► Python + SQLite (the "engine") ──► Streamlit dashboard
 ```
 
-- **Enable Banking** is a licensed middleman. Banks in Europe must let you read your own data (a law called **PSD2**), and Enable Banking gives us a single, clean way to ask BBVA for it.
-- **SQLite** is a database that lives in **one file** on your computer. No server, no cloud. Your data never leaves your machine.
-- **SQLModel** is a Python library that lets us describe database tables as normal Python classes. It's easier to read than raw SQL.
+- **Enable Banking** is a licensed middleman. A European law called **PSD2** makes banks let people read their own data, and Enable Banking offers one clean way to ask BBVA for it.
+- **SQLite** is a database that lives in **one file** (`data/finance.db`) on José's computer. No server, no cloud: the data never leaves the machine.
+- **SQLModel** lets the database tables be written as normal Python classes.
 - **Streamlit** turns a Python script into a web page with buttons and charts. **Plotly** draws the charts.
 
-**Key idea:** we build the app with **fake data first** and connect the real bank **last**. That way we can build and test everything without waiting for bank approvals, and without touching your real money data while we experiment.
+**Safety rule:** private things (`.env`, the `.pem` keys in `secrets/`, everything in `data/`) are ignored by Git and never reach GitHub.
 
 ---
 
 ## ✅ Past iterations
 
 ### Iteration #0 — Repo setup
-- **Before working with Claude.** Repo created on GitHub with `README.md` and `.gitignore`.
+- Before working with Claude, José created the GitHub repo with `README.md` and `.gitignore`.
 
-### Iteration #1 — Memory file created (2026-10-18)
-- Created this `MEMORY.md` with the big picture and a 6-step plan.
-
-### Iteration #2 — Iterations numbering (2026-10-18)
-- Added numbered iterations so we can refer to them later.
-
-### Iteration #3 — Timeline layout (2026-10-18)
-- Reorganized this file as a timeline: past iterations → current iteration → pending steps.
+### Iterations #1–#3 — This memory file (2026-10-18)
+- Claude created `MEMORY.md` with the plan, then added numbered iterations and the timeline layout at José's request.
 
 ### Iteration #4 — Project skeleton (2026-10-18)
-- Created the folder structure: `app/` (engine code), `scripts/`, `data/`, `secrets/`, plus `dashboard.py`.
-- The Python files are **placeholders** for now: each one says which step will fill it.
-- `requirements.txt` lists the libraries we need: SQLModel (database), Streamlit + Plotly + pandas (dashboard), python-dotenv, requests and PyJWT (bank connection).
-- `.env.example` is a template for your private settings, with no real values.
-- `.gitignore` now also ignores `.venv/`, and **everything inside `data/` and `secrets/`**. The empty folders stay in Git thanks to a tiny `.gitkeep` file.
-- **You:** set up your Python environment (see "🛠️ How to run the project" below).
+- Claude created the folder structure: `app/` (engine code), `scripts/`, `data/`, `secrets/` and `dashboard.py`, plus `requirements.txt` (libraries) and `.env.example` (settings template without real values).
+- Claude made `.gitignore` also ignore `.venv/` and everything inside `data/` and `secrets/`.
+- José created the virtual environment, installed the libraries and checked that the app opens.
 
 ### Iteration #5 — Explore the Enable Banking sandbox (2026-10-18)
-- Registered the sandbox app (you), created `.env` and `scripts/explore_sandbox.py` (Claude).
-- Connected to the **BBVA test bank** (user `user1` / `1234` / OTP `012345`) and downloaded 7 test accounts, 239 transactions (Jun–Sep 2026) into `data/sandbox_sample.json` (stays on your computer, ignored by Git).
-- **Lesson learned:** test banks use fake public credentials — never your real ones. Claude will always give you all needed test data *before* you run something.
+- José registered a **sandbox** (test) app in Enable Banking and saved its `.pem` key in `secrets/`.
+- Claude created `.env` (José's private settings) and wrote `scripts/explore_sandbox.py`, which signs requests with the key, opens the bank login and downloads the data.
+- José logged in to the **BBVA test bank** and downloaded 7 test accounts and 239 transactions into `data/sandbox_sample.json`.
+- **Lesson learned:** test banks use fake public credentials, never real ones. From now on, Claude always gives José all the test data needed *before* he runs something.
 
-**What BBVA gives us** (useful fields only):
+**What BBVA provides** (useful fields only):
 
 | For each… | Field | Example | Notes |
 |---|---|---|---|
 | Account | IBAN | ES84 0182 … | |
 | Account | Product / description | "CUENTA ORDINARIA BBVA", "CUENTA PARA AHORROS" | |
 | Account | Balance | 7,251.29 € | |
-| Transaction | `entry_reference` | 2100000006…354159 | **Unique ID** → our duplicate protection |
+| Transaction | `entry_reference` | 2100000006…354159 | **Unique ID** → protection against duplicates |
 | Transaction | Booking date / value date | 2026-06-08 / 2026-06-04 | |
 | Transaction | Amount + currency | 313.34 EUR | Always positive… |
-| Transaction | Direction | `CRDT` (money in) / `DBIT` (money out) | …so this tells us the sign |
+| Transaction | Direction | `CRDT` (money in) / `DBIT` (money out) | …so this gives the sign |
 | Transaction | Concept | "ALQUILER", "COMPRA", "RECIBO" | Main input for auto-categories |
 | Transaction | Who paid / who got paid | "Miguel", "David" | |
 | Transaction | Status | `BOOK` (done) / `PDNG` (pending) | |
 
-**Things to keep in mind:**
-- Sandbox data is fake and a bit odd: *all* 239 transactions are money **in**, and concepts are generic words. Real BBVA data will have money out and real merchant names (e.g. "MERCADONA").
-- Fields like `transaction_id`, merchant category or balance-after-transaction came **empty**. Your real bank may fill some of them.
+Sandbox data is fake and a bit odd: all transactions are money **in** and the concepts are generic words. Real BBVA data will have money out and real merchant names.
+
+### Iteration #6 — Database model (2026-10-18)
+- Claude wrote the three tables in `app/models.py`:
+  - **Account** — IBAN, product, description, currency, balance.
+  - **Transaction** — bank's unique ID, dates, **signed amount** (+ money in, − money out), concept, counterparty, status, category, José's note, and the **original bank record** saved untouched (so no field is ever lost).
+  - **Category** — 12 default categories (Groceries, Rent & home, Salary, Transfers…).
+- Claude wrote `app/db.py` (connects to `data/finance.db` and creates the tables) and `app/importer.py` (turns bank data into database rows; the future "Sync" button will reuse it).
+- Claude wrote `scripts/load_sandbox.py` and tested it: 7 accounts and 239 transactions loaded. **Running it a second time saved 0 new transactions**, which proves the duplicate protection works.
+- For now, only finished (`BOOK`) transactions are saved, because pending ones can still change.
+- The fake-data step was dropped: the sandbox gives enough test data.
 
 ---
 
 ## 🔨 Current iteration
 
-### Iteration #6 — Database model ⏳ *waiting for your OK*
+### Iteration #7 — Basic dashboard ⏳ *waiting for José's OK*
 
-**Goal:** Save accounts and transactions in our SQLite file, using what we learned in Iteration #5.
+**Goal:** see the money on screen for the first time, using the sandbox data in the database.
 
-**Claude's proposal:**
+**Claude will:**
+- Build a first page in `dashboard.py` with:
+  - **Filters:** date range and account.
+  - **Summary cards:** money in, money out, balance of the period.
+  - **Month by month** chart (money in vs. money out).
+  - **Spending by concept** chart (later it will be by category).
+  - **Table** with all transactions.
+- Apply a first version of José's style (see 🎨 Design preferences): dark, minimal, greys and matte tones, one subtle accent color.
 
-**`Account` table** — one row per bank account
-- IBAN, product name, description, currency
-- Current balance and when we last updated it
+**José will:**
+1. Run `python scripts\load_sandbox.py` once, to create `data/finance.db` on his computer.
+2. Open the app (see 🚀 Quick reminder) and tell Claude what he likes and what he would change.
 
-**`Transaction` table** — one row per money movement
-- `entry_reference` — the bank's unique ID. **The database refuses duplicates**, so syncing many times is safe.
-- Account it belongs to
-- Booking date and value date
-- **Signed amount**: positive = money in, negative = money out (we calculate it from `CRDT`/`DBIT`). This makes totals easy: just add everything up.
-- Concept (e.g. "ALQUILER") and counterparty (who paid / who got paid)
-- Status (done / pending)
-- **Category** — added by us (filled in the Auto-categorization step)
-- **Note** — your own free text, optional
-- **Raw data** — the original bank record, saved untouched, so if later you want a field we skipped today, we still have it
-
-**`Category` table** — the list of categories (Groceries, Rent, Salary…)
-
-**What Claude will do:** write `app/models.py` and `app/db.py`, plus a small script that loads `data/sandbox_sample.json` into the database, so we can check that everything fits.
-
-**What you will do:** say OK, or tell Claude what to add/remove.
+**In parallel, José will prepare the real BBVA connection** (it can take some time, so it's good to start now):
+1. In the Enable Banking Control Panel, register a **new application**, this time choosing **Production**.
+   - Name: `finance-app-prod`
+   - Allowed redirect URL: `https://localhost:8501/`
+   - Key: "Generate in the browser", same as before.
+2. Save the new `.pem` file in `secrets/`. It will have a different name than the sandbox one; both can live there.
+3. In the list of applications, click **"Activate by linking accounts"** on the new app.
+4. He will be sent to the **real BBVA login**: here he uses his **real** BBVA credentials (this is the real bank, not the test one). BBVA may ask him to confirm in the BBVA mobile app.
+5. Select the accounts he wants the app to read and accept. The app status should change to **Active** (restricted mode: free, and it can only read the accounts he linked).
+6. Tell Claude when it's done. Claude never needs to see the content of the key.
 
 ---
 
 ## 📋 Pending steps
 
-### Fake data *(maybe not needed — the sandbox may give us enough test data)*
-**Goal:** Have realistic data to play with, without using your real bank.
-
-**What Claude will do:** a small script that fills the database with ~6 months of invented transactions (salary, rent, supermarket, Netflix, restaurants…).
-
-**Why:** we can build and test the dashboard right away. If something breaks, nothing real is lost — we just delete the file and run the script again.
-
-**What you will do:** run the script with one command and check the database file appears in `data/`.
-
-### Basic dashboard
-**Goal:** See your money on screen.
-
-**What Claude will do:** a first Streamlit page with:
-- A **date filter** (this month, last 3 months, custom…)
-- **Summary cards**: total income, total spending, balance
-- **Spending by category** (pie or bar chart)
-- **Month by month** evolution (line chart)
-- A **table** with all transactions
-
-**What you will do:** run `streamlit run dashboard.py`, open it in your browser and tell Claude what you like and what you would change.
-
 ### Auto-categorization
-**Goal:** Transactions get their category automatically.
+- **Claude will** write simple **keyword rules**: e.g. if the concept contains "MERCADONA" or "LIDL" → *Groceries*. Rules will be easy to edit, and José will be able to fix a category by hand from the dashboard.
+- **José will** review the rules and add his usual shops. Best done once real BBVA data is in, since sandbox concepts are generic.
 
-**What Claude will do:** simple **rules based on keywords** in the transaction text. Example: if the text contains "MERCADONA" or "LIDL" → *Groceries*. Rules will be easy to edit, and you'll be able to fix a category by hand from the dashboard.
-
-**Why:** rules are simple, predictable and you understand exactly why each transaction got its category. We can make it smarter later.
-
-**What you will do:** review the rules and add your own usual shops/merchants.
-
-### Real bank connection (Enable Banking + BBVA)
-**Goal:** Replace fake data with your real transactions.
-
-**What Claude will do:**
-- Code the **login flow**: the app opens a BBVA page in your browser, you approve access, and the app gets a permission that lasts ~90–180 days.
-- Code the **"Sync" button**: it checks the date of the last saved transaction and asks the bank **only for newer ones** (this is called a *delta* or *incremental* sync). Then it categorizes them and refreshes the charts.
-
-**What you will do (you can start this now, in parallel!):**
-1. Create an account at [enablebanking.com](https://enablebanking.com) (Control Panel).
-2. Register a new **application**. You'll get an **Application ID** and a **private key (.pem file)**.
-3. Save the `.pem` file inside `secrets/` and the ID in your `.env` file. **Never share these or upload them to GitHub.**
-4. Tell Claude when it's ready — Claude will **never** need to see the content of your key.
+### Real bank connection and "Sync" button
+- **Claude will** connect the app to the Production app: login flow from the dashboard, and a **"Sync" button** that asks the bank only for transactions newer than the last one saved (an *incremental* or *delta* sync), categorizes them and refreshes the charts.
+- **José will** log in to BBVA when asked. The permission lasts about 90–180 days; after that, he logs in again.
 
 ### Later ideas (not planned yet)
 - Monthly budgets per category with alerts
@@ -182,37 +153,13 @@ BBVA bank ──► Enable Banking API ──► Python + SQLite (our "engine") 
 ## 🎨 Design preferences
 
 - **Minimalist.** Few elements, lots of space.
-- **Colors:** greys and matte tones. A *minimalist cyberpunk* feel (dark background, one subtle accent color).
-- **Font:** similar to the one in the Claude.ai interface. That exact font isn't free, so we'll pick a free look-alike.
-- To be polished later; for now we just keep it in mind.
+- **Colors:** greys and matte tones. A *minimalist cyberpunk* feel: dark background, one subtle accent color.
+- **Font:** similar to the one in the Claude.ai interface. That exact font isn't free, so Claude will pick a free look-alike.
 
 ---
 
-## 🛠️ How to run the project
+## ✅ José's to-do list
 
-Open **PowerShell** in the `finance-app` folder and run these once:
-
-```powershell
-py -m venv .venv                 # 1. create the virtual environment (the "isolated box")
-.venv\Scripts\Activate.ps1       # 2. turn it on — you'll see (.venv) at the start of the line
-pip install -r requirements.txt  # 3. install the libraries
-copy .env.example .env           # 4. create your private settings file
-streamlit run dashboard.py       # 5. open the app in your browser
-```
-
-Next times you only need steps 2 and 5.
-
-> If step 2 gives a "running scripts is disabled" error, run this once:
-> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
->
-> If `py` is not found, install Python 3.12 from python.org (tick "Add Python to PATH").
-
----
-
-## ✅ Your to-do list
-
-- [x] Push Iterations #1–#4 to GitHub
-- [x] Set up your Python environment and check the app opens
-- [x] Register the Enable Banking sandbox app and save the `.pem` in `secrets/`
-- [x] Run `scripts\explore_sandbox.py` and get the sandbox data
-- [ ] Review and confirm Iteration #6 (Database model)
+- [ ] `git push` the latest commits
+- [ ] Review and confirm Iteration #7 (Basic dashboard)
+- [ ] Register the **Production** app in Enable Banking and link the real BBVA accounts (see Iteration #7)
