@@ -81,7 +81,20 @@ BBVA ──► Enable Banking API (PSD2) ──► Python + SQLite on the User's
 - Only **one active login** per user: a new login replaces the previous one.
 - PSD2 covers **payment accounts** (current/savings). Credit cards, loans or investments may not appear.
 
-**Real numbers for the User's accounts:** *pending — Claude will fill this in after the first real connection (Iteration #8).*
+**Real numbers for the User's accounts** (first connection, 18 Oct 2026 — counts only):
+
+| Account | Transactions | History from |
+|---|---|---|
+| CUENTA ONLINE | 2,977 | Dec 2021 |
+| CUENTA METAS | 125 | Oct 2023 |
+| **Total** | **3,102** | **~5 years** |
+
+- **Direction:** 2,482 money out · 620 money in.
+- **Per year:** 2022: 466 · 2023: 873 · 2024: 626 · 2025: 620 · 2026 (so far): 495.
+- **Always filled (100 %):** unique ID, dates, amount, direction, status, concept. The concept is one line of ~84 characters, with **891 different concepts**: good material for auto-categories.
+- **Usually filled:** counterparty name (98 %), own account (85 %).
+- **Sometimes filled:** counterparty account (22–28 %), bank transaction code (27 %, e.g. transfers / standing orders).
+- **Never filled:** merchant category code, balance after each transaction. Categories will have to come from our own rules.
 
 ---
 
@@ -96,34 +109,38 @@ BBVA ──► Enable Banking API (PSD2) ──► Python + SQLite on the User's
 | 6 | 18 Oct | Claude built the database (accounts, transactions with unique bank ID, categories). Re-importing creates **0 duplicates**. |
 | 7 | 18 Oct | Claude built the first dashboard: filters, summary cards, monthly and by-concept charts, transactions table. Dark minimal style, colors checked for color blindness. Added `PRIVACY.md` / `TERMS.md` (required by Enable Banking). |
 | 7b | 18 Oct | **Security audit**: nothing private ever reached GitHub. Claude hardened `.gitignore`, added a local pre-commit safety check, and rewrote the history with the User's private GitHub email. |
+| 8 | 18 Oct | **Real BBVA connected.** Claude built login, incremental sync, the **Sync** button and the Real/Sandbox switch (real and test data in separate files). The User logged in to BBVA: **3,102 transactions, ~5 years** downloaded. |
 
 ---
 
 ## 🔨 Current iteration
 
-### #8 — Real BBVA connection + Sync button 🔨 *code ready, the User's turn*
+### #9 — Auto-categorization ⏳ *waiting for the User's OK*
 
-**Claude did:**
-- Rebuilt the bank code (`app/bank/`): login, **incremental sync** (only new transactions, with a 7-day overlap that duplicates protection absorbs) and a data report with counts only.
-- First sync uses the bank's **"longest"** mode: as much history as BBVA allows.
-- Real and test data now live in **separate files**: `data/finance.db` and `data/sandbox.db`. The User's earlier test data was moved to `sandbox.db`.
-- `.env` now holds both apps (sandbox + real) and `APP_MODE=real`.
-- Dashboard: **Real / Sandbox** switch, **Sync** button, and "bank access valid until…" status.
-- Tested with simulated bank data: 1st sync → full history; 2nd sync → 0 new, only recent days requested.
+**Goal:** every transaction gets a category (Groceries, Rent, Salary…) automatically, so the charts show *where the money goes* instead of 891 different concepts.
+
+**Claude will:**
+- Look at the most frequent concepts and counterparties **on the User's computer** (nothing is uploaded) and propose keyword rules, e.g. "MERCADONA", "LIDL" → *Groceries*; "IBERDROLA" → *Bills & utilities*.
+- Split rules in two files, for privacy:
+  - `app/rules_default.py` — **generic** rules (big shops, utilities). Safe to publish on GitHub.
+  - `data/my_rules.json` 🔒 — **personal** rules (people's names, the User's own transfers). Never uploaded.
+- Apply the rules to all existing transactions and to every new sync.
+- Dashboard: **"By category"** chart instead of "By concept", a category filter, and a way to change a transaction's category by hand (the manual choice always wins over the rules).
+- Show what percentage of transactions are still *uncategorized*, so rules can be improved.
 
 **The User will:**
-1. Make sure the Production app shows **Active** in the Enable Banking Control Panel.
-2. Run `python scripts\connect_bank.py`.
-3. Log in with the **real** BBVA credentials (on the real BBVA page) and confirm in the BBVA app if asked.
-4. Select the accounts to share and accept.
-5. On the final "This site can't be reached" page, copy the **full address** and paste it into the terminal.
+1. Say OK (or suggest changes, e.g. other categories).
+2. Review the list of proposed rules and fix anything wrong.
+
+---
+
+ copy the **full address** and paste it into the terminal.
 6. Open the app and check the data. Then tell Claude, who will read the summary file (`data/bank_report_real.json`, counts only) and complete **"What data BBVA can give us"**.
 
 ---
 
 ## 📋 Pending steps
 
-- **Auto-categorization** — Claude writes keyword rules (e.g. "MERCADONA" → Groceries) based on the User's real concepts; the User reviews them and can fix categories by hand in the app.
 - **Connect from the app** — log in to the bank from the dashboard instead of the terminal.
 - **Later ideas** — monthly budgets with alerts, savings goals, export to Excel/CSV.
 
@@ -138,4 +155,5 @@ Minimalist · greys and matte tones · *minimalist cyberpunk* (dark background, 
 ## ✅ User's to-do list
 
 - [ ] `git push`
-- [ ] Run `python scripts\connect_bank.py` and connect the real BBVA (see Iteration #8)
+- [ ] Review and confirm Iteration #9 (Auto-categorization)
+- [ ] Remember: bank access expires in **180 days** (mid-April 2027) → run `python scripts\connect_bank.py` again
