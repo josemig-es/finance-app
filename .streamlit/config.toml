@@ -11,3 +11,7 @@ toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false
+
+[server]
+# Only this computer can open the app (not other devices on the same Wi-Fi)
+address = "127.0.0.1"
