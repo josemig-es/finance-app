@@ -1,0 +1,13 @@
+# Visual theme of the app (dark, minimal, matte greys + one accent)
+[theme]
+base = "dark"
+primaryColor = "#38a596"
+backgroundColor = "#141517"
+secondaryBackgroundColor = "#1c1d20"
+textColor = "#d9d9d6"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
