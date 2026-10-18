@@ -1,0 +1,10 @@
+# Archivos de entorno y claves privadas
+.env
+*.pem
+
+# Entornos virtuales y archivos temporales de Python
+venv/
+__pycache__/
+
+# Base de datos local SQLite
+*.db
