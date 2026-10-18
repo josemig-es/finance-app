@@ -113,6 +113,14 @@ Sandbox data is fake and a bit odd: all transactions are money **in** and the co
 
 ---
 
+### Iteration #7b — Security audit (2026-10-18)
+- Claude checked every file in the repo and the **whole Git history**: no `.env`, no `.pem` keys, no database and no bank data were ever committed. No private key, Application ID or real IBAN appears in any commit.
+- Claude extended `.gitignore` to also ignore other key formats (`.key`, `.p12`, `.pfx`), variants like `.env.local`, `.streamlit/secrets.toml`, and exports of personal data (`.csv`, `.xlsx`).
+- Claude added a **local safety net** (a Git *pre-commit hook*): if a commit ever includes a key, `.env`, a database or anything inside `data/` or `secrets/`, Git refuses it. It lives only on the User's computer (in `.git/hooks/`), not on GitHub.
+- **Good to know:** the email address used to sign each commit is visible on GitHub. To hide it in future commits, the User can use the private "noreply" email that GitHub provides (Settings → Emails).
+
+---
+
 ## 🔨 Current iteration
 
 ### Iteration #8 — Real BBVA connection and "Sync" button ⏳ *waiting for the User's Production app*

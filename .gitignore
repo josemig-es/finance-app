@@ -16,3 +16,15 @@ data/*
 !data/.gitkeep
 secrets/*
 !secrets/.gitkeep
+
+# Extra safety: other secret/key formats and local settings
+.env.*
+!.env.example
+*.key
+*.p12
+*.pfx
+.streamlit/secrets.toml
+
+# Exports of personal data
+*.csv
+*.xlsx
