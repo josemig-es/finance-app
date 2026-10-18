@@ -10,7 +10,7 @@ Shared notebook of the project: what has been done, what is happening now, and w
 > ```
 > | Command | What it does |
 > |---|---|
-> | `python scripts\connect_bank.py` | Log in to the **real** BBVA and download the full history (first time, and every ~180 days) |
+> | `python scripts\connect_bank.py` | Log in to the **real** bank and download the full history (first time, and every ~180 days) |
 > | `python scripts\sync.py` | Download only new transactions (same as the **⟳ Refresh** button in the app) |
 > | `python scripts\connect_bank.py sandbox` | Same with the **test** bank — login `user1` / `1234` / OTP `012345` |
 >
@@ -33,7 +33,7 @@ Shared notebook of the project: what has been done, what is happening now, and w
 ## 🗺️ The big picture
 
 ```
-BBVA ──► Enable Banking API (PSD2) ──► Python + SQLite on the User's PC ──► Streamlit dashboard
+Bank ──► Enable Banking API (PSD2) ──► Python + SQLite on the User's PC ──► Streamlit dashboard
 ```
 - **Enable Banking**: licensed middleman that lets the app read the User's own bank data (EU law **PSD2**).
 - **SQLite**: the database is just a file in `data/`. No cloud; data never leaves the computer.
@@ -64,11 +64,11 @@ BBVA ──► Enable Banking API (PSD2) ──► Python + SQLite on the User's
 | 0 | — | The User created the GitHub repo. |
 | 1–3 | 18 Oct | Claude created this `MEMORY.md` and its timeline layout. |
 | 4 | 18 Oct | Claude created the project structure; the User set up Python (`.venv`). |
-| 5 | 18 Oct | The User registered a **sandbox** app in Enable Banking; together they downloaded test data from the BBVA test bank. *Lesson: test banks use fake public credentials, never real ones.* |
+| 5 | 18 Oct | The User registered a **sandbox** app in Enable Banking; together they downloaded test data from a test bank. *Lesson: test banks use fake public credentials, never real ones.* |
 | 6 | 18 Oct | Claude built the database (accounts, transactions with unique bank ID, categories). Re-importing creates **0 duplicates**. |
 | 7 | 18 Oct | Claude built the first dashboard: filters, summary cards, monthly and by-concept charts, transactions table. Dark minimal style, colors checked for color blindness. Added `PRIVACY.md` / `TERMS.md` (required by Enable Banking). |
 | 7b | 18 Oct | **Security audit**: nothing private ever reached GitHub. Claude hardened `.gitignore`, added a local pre-commit safety check, and rewrote the history with the User's private GitHub email. |
-| 8 | 18 Oct | **Real BBVA connected.** Claude built login, incremental sync, the **Sync** button and the Real/Sandbox switch (real and test data in separate files). The User logged in to BBVA: **3,102 transactions, ~5 years** downloaded. |
+| 8 | 18 Oct | **Real bank connected.** Claude built login, incremental sync, the **Sync** button and the Real/Sandbox switch (real and test data in separate files). The User logged in to the bank and the full history (~5 years) was downloaded. |
 | 9 | 18 Oct | **Dashboard redesign.** Claude made the app focus on the **last 5 months**: latest movements, month cards (in / out / net / change vs previous month) and a month-in-detail view. Older data moved to *Explore all history*. **⟳ Refresh** button gets new transactions. Transfers between the User's own accounts are left out of income/spending. New `README.md` with a demo screenshot; design principles moved there. |
 
 ---

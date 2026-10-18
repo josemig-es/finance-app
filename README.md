@@ -20,7 +20,7 @@ Syncs transactions through European Open Banking (PSD2), stores them on your own
 
 ## ✨ Features
 
-- [x] **Bank sync** with BBVA via [Enable Banking](https://enablebanking.com) (PSD2), up to ~5 years of history
+- [x] **Bank sync** with any bank supported by [Enable Banking](https://enablebanking.com) (PSD2, 2,500+ European banks), with years of history
 - [x] **Incremental refresh** — only new transactions are downloaded; duplicates are impossible
 - [x] **Latest movements** at a glance
 - [x] **Month-by-month analysis** of the last 5 months, with a detailed view per month
@@ -33,7 +33,7 @@ Syncs transactions through European Open Banking (PSD2), stores them on your own
 ## 🧩 How it works
 
 ```
-BBVA ──► Enable Banking API (PSD2) ──► Python + SQLite (your PC) ──► Streamlit dashboard
+Your bank ──► Enable Banking API (PSD2) ──► Python + SQLite (your PC) ──► Streamlit dashboard
 ```
 
 | Layer | Technology |
@@ -52,12 +52,12 @@ Everything stays on your machine. Credentials (`.env`), private keys (`secrets/`
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-copy .env.example .env               # then fill in your Enable Banking app IDs and key paths
+copy .env.example .env               # then fill in your bank name and Enable Banking app IDs / key paths
 python scripts\connect_bank.py       # log in to your bank and download your history
 streamlit run dashboard.py           # open http://localhost:8501
 ```
 
-Try it without a real bank: `python scripts\connect_bank.py sandbox` (test login `user1` / `1234` / OTP `012345`).
+Try it without a real bank: `python scripts\connect_bank.py sandbox` — test banks use the fake credentials listed in the [Enable Banking sandbox docs](https://enablebanking.com/docs/api/sandbox/).
 
 ## 🎨 Design principles
 

@@ -1,7 +1,9 @@
-"""Connect to BBVA (log in), download the full history and save it.
+"""Connect to your bank (log in), download the full history and save it.
+
+The bank is set in .env (BANK_NAME, BANK_COUNTRY).
 
     python scripts/connect_bank.py            # real bank (default)
-    python scripts/connect_bank.py sandbox    # test bank (user1 / 1234 / OTP 012345)
+    python scripts/connect_bank.py sandbox    # test bank (fake credentials from the Enable Banking sandbox docs)
 
 Run it the first time, and again whenever the bank access expires (~every 180 days).
 """
@@ -13,22 +15,23 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.bank.sync import data_report, finish_connection, start_connection, sync  # noqa: E402
-from app.config import DATA, REDIRECT_URL  # noqa: E402
+from app.config import BANK_NAME, DATA, REDIRECT_URL  # noqa: E402
 
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "real"
     if mode not in ("real", "sandbox"):
         sys.exit("Usage: python scripts/connect_bank.py [real|sandbox]")
-    print(f"🔐 Connecting to BBVA ({'REAL bank' if mode == 'real' else 'TEST bank'})...\n")
+    bank = BANK_NAME or "your bank"
+    print(f"🔐 Connecting to {bank} ({'REAL bank' if mode == 'real' else 'TEST bank'})...\n")
 
     start = start_connection(mode)
     print(f"Access will be valid for {start['days']} days.")
-    print("🌐 Opening the BBVA login page in your browser...")
+    print(f"🌐 Opening the {bank} login page in your browser...")
     print("   If it doesn't open, copy this link:\n  ", start["url"])
     webbrowser.open(start["url"])
     print(
-        "\n1. Log in and approve the access (BBVA may ask you to confirm in the BBVA app)."
+        "\n1. Log in and approve the access (your bank may ask you to confirm in its mobile app)."
         "\n2. Select the accounts you want to share and accept."
         "\n3. Your browser will end on a page that says 'This site can't be reached'. That's expected!"
         f"\n   Copy the FULL address from the address bar (it starts with {REDIRECT_URL}) and paste it here."

@@ -12,6 +12,10 @@ MODES = ("real", "sandbox")
 DEFAULT_MODE = os.getenv("APP_MODE", "sandbox") if os.getenv("APP_MODE") in MODES else "sandbox"
 REDIRECT_URL = os.getenv("REDIRECT_URL", "https://localhost:8501/")
 
+# Which bank to connect to (name as listed by Enable Banking, and its country code)
+BANK_NAME = os.getenv("BANK_NAME", "").strip()
+BANK_COUNTRY = os.getenv("BANK_COUNTRY", "ES").strip().upper()
+
 # Real and test data live in separate files, so they never mix.
 DB_FILES = {"real": DATA / "finance.db", "sandbox": DATA / "sandbox.db"}
 

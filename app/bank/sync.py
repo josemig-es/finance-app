@@ -10,12 +10,11 @@ from urllib.parse import parse_qs, urlparse
 from sqlmodel import func, select
 
 from app.bank.client import BankError, EnableBanking
-from app.config import DATA, REDIRECT_URL, bank_credentials
+from app.config import BANK_COUNTRY, BANK_NAME, DATA, REDIRECT_URL, bank_credentials
 from app.db import get_session
 from app.importer import save_account, save_transactions
 from app.models import Account, Transaction
 
-BANK_NAME, BANK_COUNTRY = "BBVA", "ES"
 OVERLAP_DAYS = 7  # re-ask the last week, in case the bank books something late (duplicates are skipped)
 
 
@@ -43,10 +42,12 @@ def session_valid_until(mode: str) -> datetime | None:
 # ---------- Connect (login) ----------
 def find_bank(c: EnableBanking) -> dict:
     banks = c.aspsps(BANK_COUNTRY)
+    if not BANK_NAME:
+        raise RuntimeError("Set BANK_NAME in .env. Available in " + BANK_COUNTRY + ": " + ", ".join(b["name"] for b in banks))
     for b in banks:
-        if b["name"].strip().upper() == BANK_NAME:
+        if b["name"].strip().upper() == BANK_NAME.upper():
             return b
-    raise RuntimeError(f"{BANK_NAME} not found. Available: {', '.join(b['name'] for b in banks[:20])}")
+    raise RuntimeError(f"Bank '{BANK_NAME}' not found in {BANK_COUNTRY}. Available: " + ", ".join(b["name"] for b in banks))
 
 
 def start_connection(mode: str) -> dict:
@@ -89,7 +90,7 @@ def sync(mode: str, log=print) -> list[dict]:
     if not session_valid_until(mode):
         raise RuntimeError("Bank access has expired. Connect again: python scripts\\connect_bank.py")
     c = client(mode)
-    bank = (s.get("aspsp") or {}).get("name", BANK_NAME)
+    bank = (s.get("aspsp") or {}).get("name") or BANK_NAME or "Bank"
     summary = []
     with get_session(mode) as db:
         for info in s["accounts"]:

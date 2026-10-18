@@ -24,7 +24,7 @@ class Account(SQLModel, table=True):
     # IBAN (or the bank's own account number when there's no IBAN). Never changes, so it identifies the account.
     identifier: str = Field(unique=True, index=True)
     bank: str
-    product: Optional[str] = None       # e.g. "CUENTA ORDINARIA BBVA"
+    product: Optional[str] = None       # e.g. "CURRENT ACCOUNT"
     description: Optional[str] = None   # e.g. "CUENTA PARA AHORROS"
     currency: str = "EUR"
     balance: Optional[Decimal] = Field(default=None, max_digits=14, decimal_places=2)
