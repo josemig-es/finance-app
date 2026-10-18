@@ -160,7 +160,7 @@ Next times you only need steps 2 and 5.
 
 ## ✅ Your to-do list
 
-- [ ] Push the last commit to GitHub (`git push`) and commit Iteration #4
+- [ ] Push to GitHub: `git push` (Iterations #1–#4 are committed locally)
 - [ ] Set up your Python environment and check the app opens — see "🛠️ How to run the project"
 - [ ] Confirm Iteration #5 (Database model)
 - [ ] 🔨 In progress: Enable Banking registration — see "Real bank connection"
