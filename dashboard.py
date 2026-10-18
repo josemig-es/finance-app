@@ -5,7 +5,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from app.db import engine, init_db
+from app.bank.sync import session_valid_until, sync
+from app.config import DEFAULT_MODE
+from app.db import get_engine
 
 # ---------- Look & feel ----------
 IN_COLOR = "#38a596"    # money in  (matte teal)
@@ -59,13 +61,12 @@ def style_fig(fig: go.Figure, height: int = 320) -> go.Figure:
 
 # ---------- Data ----------
 @st.cache_data(ttl=60)
-def load_data() -> pd.DataFrame:
-    init_db()
+def load_data(mode: str) -> pd.DataFrame:
     df = pd.read_sql(
         'SELECT t.booking_date, t.amount, t.concept, t.counterparty, '
         'a.identifier, a.product, a.description '
         'FROM "transaction" t JOIN account a ON a.id = t.account_id',
-        engine,
+        get_engine(mode),
     )
     if df.empty:
         return df
@@ -76,11 +77,32 @@ def load_data() -> pd.DataFrame:
     return df
 
 
-df = load_data()
+# ---------- Header: title, data source, sync ----------
+h1, h2, h3 = st.columns([3, 1.4, 1], vertical_alignment="bottom")
+h1.markdown("# Finance")
+with h2:
+    mode = st.segmented_control("Data", ["real", "sandbox"], default=DEFAULT_MODE,
+                                format_func=str.capitalize, label_visibility="collapsed") or DEFAULT_MODE
+until = session_valid_until(mode)
+with h3:
+    if st.button("⟳  Sync", disabled=until is None, width="stretch",
+                 help="Download new transactions from the bank" if until else "Connect the bank first"):
+        lines = []
+        try:
+            with st.spinner("Syncing with the bank..."):
+                sync(mode, log=lines.append)
+            st.cache_data.clear()
+            st.toast("Sync done ✓")
+        except Exception as e:  # show a friendly message instead of crashing
+            st.error(str(e))
+status = (f"Bank access valid until {until:%d %b %Y}" if until
+          else "Bank not connected — run `python scripts\\connect_bank.py" + (" sandbox" if mode == "sandbox" else "") + "`")
+st.markdown(f'<p class="subtle">{"● " if until else "○ "}{status}</p>', unsafe_allow_html=True)
 
-st.markdown("# Finance")
+df = load_data(mode)
 if df.empty:
-    st.info("No data yet. In the terminal, run:  `python scripts\\load_sandbox.py`")
+    st.info("No transactions yet. Connect the bank with:  `python scripts\\connect_bank.py"
+            + (" sandbox" if mode == "sandbox" else "") + "`")
     st.stop()
 
 # ---------- Filters (one row) ----------

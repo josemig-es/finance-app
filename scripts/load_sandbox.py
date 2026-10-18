@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 from sqlmodel import func, select  # noqa: E402
 
-from app.db import get_session, init_db  # noqa: E402
+from app.db import get_session  # noqa: E402
 from app.importer import save_account, save_transactions  # noqa: E402
 from app.models import Account, Transaction  # noqa: E402
 
@@ -23,12 +23,11 @@ SAMPLE = ROOT / "data" / "sandbox_sample.json"
 
 def main():
     if not SAMPLE.exists():
-        sys.exit("❌ data/sandbox_sample.json not found. Run scripts/explore_sandbox.py first.")
+        sys.exit("❌ data/sandbox_sample.json not found. Use instead: python scripts/connect_bank.py sandbox")
     data = json.loads(SAMPLE.read_text(encoding="utf-8"))
-    init_db()
     infos = {a["uid"]: a for a in data["session"]["accounts"]}
 
-    with get_session() as session:
+    with get_session("sandbox") as session:
         for acc in data["accounts"]:
             account = save_account(session, data["bank"], infos[acc["uid"]], acc["balances"])
             new, skipped = save_transactions(session, account, acc["transactions"])
@@ -37,7 +36,7 @@ def main():
 
         n_acc = session.exec(select(func.count()).select_from(Account)).one()
         n_tx = session.exec(select(func.count()).select_from(Transaction)).one()
-    print(f"\n✅ Database now has {n_acc} accounts and {n_tx} transactions (data/finance.db)")
+    print(f"\n✅ Database now has {n_acc} accounts and {n_tx} transactions (data/sandbox.db)")
 
 
 if __name__ == "__main__":

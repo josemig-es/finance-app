@@ -1,28 +1,10 @@
-"""Connection to the local SQLite database file."""
-import os
-from pathlib import Path
+"""Connection to the local SQLite database files (one for real data, one for sandbox)."""
+from functools import lru_cache
 
-from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
+from app.config import DB_FILES
 from app.models import Category
-
-ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(ROOT / ".env")
-
-
-def _database_url() -> str:
-    url = os.getenv("DATABASE_URL", "sqlite:///data/finance.db")
-    prefix = "sqlite:///"
-    if url.startswith(prefix) and not Path(url[len(prefix):]).is_absolute():
-        # Make relative paths relative to the project folder, wherever the script is run from.
-        path = ROOT / url[len(prefix):]
-        path.parent.mkdir(parents=True, exist_ok=True)
-        url = prefix + path.as_posix()
-    return url
-
-
-engine = create_engine(_database_url())
 
 DEFAULT_CATEGORIES = [
     ("Groceries", "expense"), ("Rent & home", "expense"), ("Bills & utilities", "expense"),
@@ -32,8 +14,17 @@ DEFAULT_CATEGORIES = [
 ]
 
 
-def init_db() -> None:
-    """Create the tables (only if they don't exist yet) and the default categories."""
+@lru_cache
+def get_engine(mode: str):
+    path = DB_FILES[mode]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    engine = create_engine(f"sqlite:///{path.as_posix()}")
+    _init(engine)
+    return engine
+
+
+def _init(engine) -> None:
+    """Create the tables (only if missing) and the default categories."""
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         existing = set(session.exec(select(Category.name)).all())
@@ -43,5 +34,5 @@ def init_db() -> None:
         session.commit()
 
 
-def get_session() -> Session:
-    return Session(engine)
+def get_session(mode: str) -> Session:
+    return Session(get_engine(mode))
